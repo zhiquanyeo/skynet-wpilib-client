@@ -113,7 +113,12 @@ public class SkynetConnection {
 			d_isConnected = true;
 			
 			// Subscribe to topics of interest
-			d_mqttClient.subscribe("skynet/#");
+			// We are only interested in the activeClient message, and messages from the robot
+			d_mqttClient.subscribe("skynet/robot/#");
+			d_mqttClient.subscribe("skynet/clients/activeClient");
+			
+			//Register this client
+			d_mqttClient.publish("skynet/clients/register", d_mqttIdentifier.getBytes(), 0, false);
 			
 			// Inform subscribers of connection
 			for (int i = 0; i < d_subscribers.size(); i++) {
@@ -166,6 +171,67 @@ public class SkynetConnection {
 		while (d_subscribers.contains(subscriber)) {
 			d_subscribers.remove(subscriber);
 		}
+	}
+	
+	// === Interacting with the MQTT Endpoint
+	public boolean sendDigitalOutput(int channel, boolean value) {
+		if (!d_isConnected) {
+			LOGGER.warning("Could not send digital output. Not connected");
+			return false;
+		}
+		String strVal = value ? "1":"0";
+		try {
+			d_mqttClient.publish("skynet/control/digital/" + channel, strVal.getBytes(), 0, false);
+		}
+		catch (Exception e) {
+			LOGGER.warning("Could not send digital output: " + e.getMessage());
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean sendAnalogOutput(int channel, double value) { // 0 <= analog <= 1023
+		if (!d_isConnected) {
+			LOGGER.warning("Could not send analog output. Not connected");
+			return false;
+		}
+		String strVal = Double.toString(value);
+		try {
+			d_mqttClient.publish("skynet/control/analog/" + channel, strVal.getBytes(), 0, false);
+		}
+		catch (Exception e) {
+			LOGGER.warning("Could not send analog output: " + e.getMessage());
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean sendPwmOutput(int channel, double value) { //-1 <= pwm <= 1
+		if (!d_isConnected) {
+			LOGGER.warning("Could not send digital output. Not connected");
+			return false;
+		}
+		
+		// Clamp the value
+		if (value < -1.0) {
+			value = -1.0;
+		}
+		if (value > 1.0) {
+			value = 1.0;
+		}
+		
+		String strVal = Double.toString(value);
+		try {
+			d_mqttClient.publish("skynet/control/pwm/" + channel, strVal.getBytes(), 0, false);
+		}
+		catch (Exception e) {
+			LOGGER.warning("Could not send pwm output: " + e.getMessage());
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private boolean broadcastSensorMessage(String topic, byte[] payload) {

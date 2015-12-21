@@ -1,8 +1,10 @@
 package com.zhiquanyeo.skynet;
 	
 import com.zhiquanyeo.skynet.network.SkynetConnection;
+import com.zhiquanyeo.skynet.tests.TestSkynetConnectionListener;
 import com.zhiquanyeo.skynet.ui.MainWindowController;
 
+import edu.wpi.first.wpilibj.RobotBaseRunner;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,6 +15,8 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 	private SkynetConnection d_skynetConnection = new SkynetConnection();
+	
+	private TestSkynetConnectionListener d_testListener = new TestSkynetConnectionListener();
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -32,6 +36,14 @@ public class Main extends Application {
 	        
 	        primaryStage.titleProperty().set("Skynet WPILib Client");
 	        primaryStage.show();
+	        
+	        // Once this is all set up, we can start running robot code
+	        RobotBaseRunner robotRunner = new RobotBaseRunner(d_skynetConnection);
+	        Thread t = new Thread(robotRunner);
+	        t.start();
+	        
+	        // === TESTS ===
+	        d_skynetConnection.addSubscriber(d_testListener);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
