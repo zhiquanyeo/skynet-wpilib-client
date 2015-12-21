@@ -4,7 +4,9 @@ public interface ISkynetConnectionListener {
 	void onConnected();
 	void onDisconnected();
 	void onConnectionLost(String cause);
-	void onMessageReceived(String topic, byte[] payload);
 	
-	// TODO Potentially separate this out into more specific message types?
+	void onRobotDigitalInputChanged(int channel, boolean value);
+	void onRobotAnalogInputChanged(int channel, double value);
+	void onRobotStatusMessage(String statusType, String message);
+	void onRobotGeneralMessage(String message);
 }

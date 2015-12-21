@@ -30,6 +30,7 @@ public class Main extends Application {
 	        TitledPane tp = mainWindowController.getTitledPane();
 	        tp.heightProperty().addListener((obs, oldHeight, newHeight) -> primaryStage.sizeToScene());
 	        
+	        primaryStage.titleProperty().set("Skynet WPILib Client");
 	        primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();

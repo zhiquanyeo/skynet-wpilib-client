@@ -51,12 +51,16 @@ public class MainWindowController implements ISkynetConnectionListener {
 
     @FXML
     private Button connectButton;
+    
+    @FXML
+    private Label driverStationStatusLabel;
 
     private ConnectService connectService;
     private DisconnectService disconnectService;
 
     private StringProperty statusMessagesProperty;
     private BooleanProperty connectedProperty;
+    private StringProperty driverStationStatusProperty;
     
     private SkynetConnection d_skynetConnection;
     
@@ -80,6 +84,7 @@ public class MainWindowController implements ISkynetConnectionListener {
         connectButton.disableProperty().bind(connectedProperty().or(anyServiceRunning));
         disconnectButton.disableProperty().bind(connectedProperty().not().or(anyServiceRunning));
         messagesLabel.textProperty().bind(statusMessagesProperty());
+        driverStationStatusLabel.textProperty().bind(driverStationStatusProperty());
 
         connectService.messageProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) -> {
             statusMessagesProperty().set(newValue);
@@ -89,6 +94,7 @@ public class MainWindowController implements ISkynetConnectionListener {
         });
 
         statusMessagesProperty().set("Disconnected.");
+        driverStationStatusProperty().set("Disconnected");
         
         txtHostPort.textProperty().addListener((obs, oldValue, newValue) -> {
         	if (newValue.equals("")) {
@@ -141,6 +147,13 @@ public class MainWindowController implements ISkynetConnectionListener {
             connectedProperty = new SimpleBooleanProperty(Boolean.FALSE);
         }
         return connectedProperty;
+    }
+    
+    private StringProperty driverStationStatusProperty() {
+    	if (driverStationStatusProperty == null) {
+    		driverStationStatusProperty = new SimpleStringProperty();
+    	}
+    	return driverStationStatusProperty;
     }
 
     private class ConnectService extends Service<Void> {
@@ -221,18 +234,37 @@ public class MainWindowController implements ISkynetConnectionListener {
 	}
 
 	@Override
-	public void onMessageReceived(String topic, byte[] payload) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void onConnectionLost(String cause) {
+		// Use Platform.runLater to invoke this on the UI thread
 		Platform.runLater(new Runnable() {
 			public void run() {
 				statusMessagesProperty().set("Connection Lost: " + cause);
 				connectedProperty().set(false);
 			}
 		});
+	}
+
+	@Override
+	public void onRobotDigitalInputChanged(int channel, boolean value) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onRobotAnalogInputChanged(int channel, double value) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onRobotStatusMessage(String statusType, String message) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onRobotGeneralMessage(String message) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -1,7 +1,10 @@
 package com.zhiquanyeo.skynet.network;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -22,6 +25,27 @@ public class SkynetConnection {
 	
 	private ArrayList<ISkynetConnectionListener> d_subscribers = new ArrayList<ISkynetConnectionListener>();
 	
+	// Regex Utils
+	private final static Pattern SKYNET_ROBOT_MESSAGE_TYPE_REGEX = 
+			Pattern.compile("skynet/robot/([a-zA-Z0-9]+)");
+	private final static Matcher ROBOT_MESSAGE_TYPE_MATCHER = SKYNET_ROBOT_MESSAGE_TYPE_REGEX.matcher("");
+	
+	private final static Pattern SKYNET_SENSOR_REGEX = 
+			Pattern.compile("skynet/robot/sensors/([a-z]+)/([0-9]+)$");
+	private final static Matcher ROBOT_SENSOR_MATCHER = SKYNET_SENSOR_REGEX.matcher("");
+	
+	private final static Pattern SKYNET_STATUS_MESSAGE_REGEX = 
+			Pattern.compile("skynet/robot/status/([a-zA-Z0-9]+)$");
+	private final static Matcher ROBOT_STATUS_MESSAGE_MATCHER = SKYNET_STATUS_MESSAGE_REGEX.matcher("");
+	
+	private final static HashSet<String> LEGAL_MESSAGE_TYPES = new HashSet<String>();
+	
+	public SkynetConnection() {
+		//Populate the legal message types
+		LEGAL_MESSAGE_TYPES.add("sensors");
+		LEGAL_MESSAGE_TYPES.add("status");
+		LEGAL_MESSAGE_TYPES.add("message");
+	}
 	
 	public synchronized boolean isConnected() {
 		return this.d_isConnected;
@@ -58,19 +82,38 @@ public class SkynetConnection {
 
 				@Override
 				public void messageArrived(String topic, MqttMessage message) throws Exception {
-					// TODO Inform all subscribers that a message was received
-					for (int i = 0; i < d_subscribers.size(); i++) {
-						d_subscribers.get(i).onMessageReceived(topic, message.getPayload());
+					ROBOT_MESSAGE_TYPE_MATCHER.reset(topic);
+					if (ROBOT_MESSAGE_TYPE_MATCHER.lookingAt() && 
+						LEGAL_MESSAGE_TYPES.contains(ROBOT_MESSAGE_TYPE_MATCHER.group(1))) {
+						
+						String robotMessageType = ROBOT_MESSAGE_TYPE_MATCHER.group(1);
+						
+						switch(robotMessageType) {
+							case "sensors": {
+								broadcastSensorMessage(topic, message.getPayload());
+							} break;
+							
+							case "status": {
+								broadcastRobotStatusMessage(topic, message.getPayload());
+							} break;
+							
+							case "message": {
+								broadcastRobotGeneralMessage(message.getPayload());
+							} break;
+						}
+					}
+					else {
+						LOGGER.warning("Dropping illegal message: " + topic);
 					}
 				}
 				
 			});
 			
 			d_mqttClient.connect();
-			
 			d_isConnected = true;
 			
 			// Subscribe to topics of interest
+			d_mqttClient.subscribe("skynet/#");
 			
 			// Inform subscribers of connection
 			for (int i = 0; i < d_subscribers.size(); i++) {
@@ -105,6 +148,16 @@ public class SkynetConnection {
 		}
 	}
 	
+	public synchronized boolean publish(String topic, byte[] payload) throws Exception {
+		if (!d_isConnected) {
+			LOGGER.warning("Cannot publish. Not connected");
+			throw new Exception("Cannot publish. Not connected");
+		}
+		
+		d_mqttClient.publish(topic, payload, 0, false);
+		return true;
+	}
+	
 	public synchronized void addSubscriber(ISkynetConnectionListener subscriber) {
 		d_subscribers.add(subscriber);
 	}
@@ -113,5 +166,72 @@ public class SkynetConnection {
 		while (d_subscribers.contains(subscriber)) {
 			d_subscribers.remove(subscriber);
 		}
+	}
+	
+	private boolean broadcastSensorMessage(String topic, byte[] payload) {
+		ROBOT_SENSOR_MATCHER.reset(topic);
+		String sensorType;
+		if (ROBOT_SENSOR_MATCHER.matches()) {
+			int channel = -1;
+			try {
+				channel = Integer.parseInt(ROBOT_SENSOR_MATCHER.group(2));
+			}
+			catch (NumberFormatException e) {
+				LOGGER.warning("Invalid channel number: " + e.getMessage());
+				return false;
+			}
+			
+			sensorType = ROBOT_SENSOR_MATCHER.group(1);
+			
+			if (sensorType.equals("digital")) {
+				boolean value = (new String(payload)).equals("1");
+				
+				for (int i = 0; i < d_subscribers.size(); i++) {
+					d_subscribers.get(i).onRobotDigitalInputChanged(channel, value);
+				}
+			}
+			else if (sensorType.equals("analog")) {
+				double value = Double.NaN;
+				try {
+					value = Double.parseDouble(new String(payload));
+				}
+				catch (NumberFormatException e) {
+					LOGGER.warning("Invalid value for analog signal: " + e.getMessage());
+					return false;
+				}
+				for (int i = 0; i < d_subscribers.size(); i++) {
+					d_subscribers.get(i).onRobotAnalogInputChanged(channel, value);
+				}
+			}
+			else {
+				LOGGER.warning("Invalid sensor type: " + sensorType);
+			}
+			
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean broadcastRobotStatusMessage(String topic, byte[] payload) {
+		ROBOT_STATUS_MESSAGE_MATCHER.reset(topic);
+		String statusType;
+		if (ROBOT_STATUS_MESSAGE_MATCHER.matches()) {
+			statusType = ROBOT_STATUS_MESSAGE_MATCHER.group(1);
+			String message = new String(payload);
+			
+			for (int i = 0; i < d_subscribers.size(); i++) {
+				d_subscribers.get(i).onRobotStatusMessage(statusType, message);
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean broadcastRobotGeneralMessage(byte[] payload) {
+		String message = new String(payload);
+		for (int i = 0; i < d_subscribers.size(); i++) {
+			d_subscribers.get(i).onRobotGeneralMessage(message);
+		}
+		return false;
 	}
 }
