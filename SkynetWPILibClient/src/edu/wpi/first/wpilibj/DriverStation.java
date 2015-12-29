@@ -1,5 +1,7 @@
 package edu.wpi.first.wpilibj;
 
+import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
+
 public class DriverStation implements RobotState.Interface {
 	/**
      * Number of Joystick Ports
@@ -52,6 +54,12 @@ public class DriverStation implements RobotState.Interface {
     }
     
     private static DriverStation instance = new DriverStation();
+    
+    private short[][] d_joystickAxes =
+    		new short[kJoystickPorts][FRCNetworkCommunicationsLibrary.kMaxJoystickAxes];
+    private short[][] d_joystickPOVs =
+    		new short[kJoystickPorts][FRCNetworkCommunicationsLibrary.kMaxJoystickPOVs];
+    
     private final Object d_dataSem;
     private Thread d_thread;
     private boolean d_thread_keepalive = true;

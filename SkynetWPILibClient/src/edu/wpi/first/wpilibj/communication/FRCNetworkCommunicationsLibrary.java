@@ -9,10 +9,13 @@ import java.util.Arrays;
 
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015;
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015.DS_ClientPacket2015;
+import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015.ProgramStatus;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_Alliance;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_ClientPacket;
+import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_ControlMode;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_Joystick;
+import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_RobotPacket;
 
 /**
  * Replacement for using FRCNetworkCommunicationLibrary on a local skynet instance
@@ -104,22 +107,24 @@ public class FRCNetworkCommunicationsLibrary {
 	// These all inform the DS of program state
 	public static void FRCNetworkCommunicationObserveUserProgramStarting() {
 		// Send the DS a message that we are ready
+		// We send state on every ping anyway, so just update the state
+		s_instance.setProgramStatus(ProgramStatus.pProgramCodePresent);
 	}
 	
 	public static void FRCNetworkCommunicationObserveUserProgramDisabled() {
-		
+		s_instance.setProgramStatus(ProgramStatus.pProgramDisabled);
 	}
 	
 	public static void FRCNetworkCommunicationObserveUserProgramAutonomous() {
-		
+		s_instance.setProgramStatus(ProgramStatus.pProgramAutonomous);
 	}
 	
 	public static void FRCNetworkCommunicationObserveUserProgramTeleop() {
-		
+		s_instance.setProgramStatus(ProgramStatus.pProgramTeleoperated);
 	}
 	
 	public static void FRCNetworkCommunicationObserveUserProgramTest() {
-		
+		s_instance.setProgramStatus(ProgramStatus.pProgramTest);
 	}
 	
 	public static void FRCNetworkCommunicationReserve() {
@@ -184,6 +189,16 @@ public class FRCNetworkCommunicationsLibrary {
 	public static int HALGetJoystickButtons(byte joystickNum, ByteBuffer count) {
 		// return an int representing the bitmap of the buttons, and 
 		//count is the number of buttons
+		DS_Joystick stick = s_instance.getJoystick(joystickNum);
+		if (stick != null) {
+			int val = 0;
+			if (stick.buttons != null) {
+				for (int i = 0; i < stick.buttons.length; i++) {
+					val += (stick.buttons[i] ? (int)Math.pow(2, i) : 0); 
+				}
+				return val;
+			}
+		}
 		return 0;
 	}
 	
@@ -193,22 +208,27 @@ public class FRCNetworkCommunicationsLibrary {
 	}
 	
 	public static int HALGetJoystickIsXbox(byte joystickNum) {
+		// TBD - Implement
 		return 0;
 	}
 	
 	public static int HALGetJoystickType(byte joystickNum) {
+		// TBD - Implement
 		return 0;
 	}
 	
 	public static String HALGetJoystickName(byte joystickNum) {
-		return "";
+		// TBD - Implement
+		return "Joystick";
 	}
 	
 	public static int HALGetJoystickAxisType(byte joystickNum, byte axis) {
+		// TBD - No idea what this does
 		return 0;
 	}
 	
 	public static float HALGetMatchTime() {
+		// TBD - Implement
 		return 0.0f;
 	}
 	
@@ -244,6 +264,8 @@ public class FRCNetworkCommunicationsLibrary {
 	
 	// Properties to keep track of state
 	private DS_ClientPacket d_lastPacket;
+	private ProgramStatus d_programStatus = ProgramStatus.pProgramDisabled;
+	private DS_ControlMode d_currentRobotMode = DS_ControlMode.kControlDisabled;
 	
 	// Accessors/Setters
 	public synchronized boolean isSystemActive() {
@@ -272,11 +294,64 @@ public class FRCNetworkCommunicationsLibrary {
 		return null;
 	}
 	
+	public synchronized DS_ControlMode getRobotMode() {
+		return d_currentRobotMode;
+	}
+	
+	public synchronized void setRobotMode(DS_ControlMode mode) {
+		d_currentRobotMode = mode;
+	}
+	
+	public synchronized ProgramStatus getProgramStatus() {
+		return d_programStatus;
+	}
+	
+	public synchronized void setProgramStatus(ProgramStatus status) {
+		d_programStatus = status;
+	}
+	
+	public synchronized int makeControlWord() {
+		// Bits
+		// 0 - Enabled //This means teleop
+		// 1 - Autonomous
+		// 2 - Test
+		// 3 - EStop
+		// 4 - FMS (false)
+		// 5 - DS
+		int cWord = 0;
+		switch (d_currentRobotMode) {
+			case kControlDisabled:
+				cWord = 0; //All control bits 0
+				break;
+			case kControlTeleoperated:
+				cWord = 1; //Enabled
+				break;
+			case kControlAutonomous:
+				cWord = 3; // Enabled + Auto
+				break;
+			case kControlTest:
+				cWord = 5; // Enabled + Test
+				break;
+			case kControlEmergencyStop:
+				cWord = 9; // Enabled + ESTOP
+				break;
+		}
+		
+		if (d_dsAttached) {
+			cWord += 32;
+		}
+		return cWord;
+	}
+	
+	protected boolean d_dsAttached = false;
+	
 	protected DSNetworkThread d_networkThread;
 	protected IDSNetworkThreadListener d_networkListener = new IDSNetworkThreadListener() {
 
 		@Override
 		public void onClientPacketReceived(DS_ClientPacket packet) {
+			d_dsAttached = true;
+			
 			if (s_protocol instanceof DS_Protocol2015) {
 				DS_ClientPacket2015 thePacket = (DS_ClientPacket2015)packet;
 				if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pJoystick) {
@@ -291,6 +366,21 @@ public class FRCNetworkCommunicationsLibrary {
 			}
 			
 			// Doesn't matter, we just need the joystick packet data
+			// TBD - Implement
+			// We should probably also feed a watchdog
+			
+			if (d_currentRobotMode != packet.controlMode) {
+				// Update!
+				d_currentRobotMode = packet.controlMode;
+				// TODO If we are switching modes to disabled or estop,we might wanna do something smart
+			}
+			
+			// generate the response packet
+			DS_RobotPacket responsePkt = new DS_RobotPacket();
+			responsePkt.packetNum = packet.packetNum;
+			responsePkt.controlMode = (byte)packet.controlMode.ordinal(); //Echo the control byte
+			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
+			responsePkt.voltage = 12.2; // Fake voltage for now
 			
 		}
 		

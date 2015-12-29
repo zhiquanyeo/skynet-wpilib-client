@@ -229,8 +229,8 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		
 		DS_RobotPacket pkt = new DS_RobotPacket();
 		pkt.packetNum = ((int)buffer[0] << 8) + (int)buffer[1];
-		pkt.state = buffer[4];
-		pkt.status = buffer[4];
+		pkt.controlMode = buffer[3];
+		pkt.programStatus = buffer[4];
 		pkt.voltage = Double.parseDouble("" + buffer[5] + "." + buffer[6]);
 		pkt.request = buffer[7];
 		
@@ -420,8 +420,9 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		byte[] buffer = new byte[8];
 		buffer[0] = (byte)((packet.packetNum >> 8) & 0xFF);
 		buffer[1] = (byte)(packet.packetNum & 0xFF);
-		buffer[3] = packet.state;
-		buffer[4] = packet.status;
+		buffer[2] = 0x01; // Protocol Version
+		buffer[3] = packet.controlMode; //ControlMode confirmation
+		buffer[4] = packet.programStatus;
 		
 		int vMajor, vMinor;
 		DecimalFormat df = new DecimalFormat("#.##");

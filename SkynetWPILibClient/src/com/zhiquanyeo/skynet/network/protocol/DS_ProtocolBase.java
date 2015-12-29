@@ -154,8 +154,8 @@ public abstract class DS_ProtocolBase {
 	
 	public static class DS_RobotPacket {
 		public int packetNum;
-		public byte state; 	//TODO What's the difference?
-		public byte status;	//TODO What's the difference?
+		public byte controlMode; //Confirmation of received control byte
+		public byte programStatus; //Current program status
 		public double voltage;
 		public byte request;
 	}
