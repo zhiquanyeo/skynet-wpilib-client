@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015;
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015.DS_ClientPacket2015;
@@ -245,6 +246,12 @@ public class FRCNetworkCommunicationsLibrary {
 	}
 	
 	
+	// Semaphore for throttling
+	private static Semaphore s_semaphore = new Semaphore(0);
+	public static Semaphore getNetworkSemaphore() {
+		return s_semaphore;
+	}
+	
 	//Use the default 2015 protocol
 	private static DS_ProtocolBase s_protocol = new DS_Protocol2015();
 	
@@ -350,6 +357,7 @@ public class FRCNetworkCommunicationsLibrary {
 
 		@Override
 		public void onClientPacketReceived(DS_ClientPacket packet) {
+			
 			d_dsAttached = true;
 			
 			if (s_protocol instanceof DS_Protocol2015) {
@@ -375,6 +383,14 @@ public class FRCNetworkCommunicationsLibrary {
 				// TODO If we are switching modes to disabled or estop,we might wanna do something smart
 			}
 			
+			// Save the packet
+			d_lastPacket = packet;
+			
+			// Only release a permit if we currently have none
+			if (s_semaphore.availablePermits() == 0) {
+				s_semaphore.release();
+			}
+			
 			// generate the response packet
 			DS_RobotPacket responsePkt = new DS_RobotPacket();
 			responsePkt.packetNum = packet.packetNum;
@@ -382,6 +398,7 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
 			responsePkt.voltage = 12.2; // Fake voltage for now
 			
+			// TODO Send the response packet
 		}
 		
 	};
