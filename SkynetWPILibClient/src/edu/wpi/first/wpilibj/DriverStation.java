@@ -87,7 +87,7 @@ public class DriverStation implements RobotState.Interface {
     private void task() {
     	int safetyCounter = 0;
     	while (d_thread_keepalive) {
-    		d_dataAvailableSem.acquire();
+    		d_dataAvailableSem.acquireUninterruptibly();
     		synchronized(this) {
     			getData();
     		}
