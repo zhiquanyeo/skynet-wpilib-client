@@ -1,6 +1,8 @@
 package com.zhiquanyeo.skynet.network.protocol;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class DS_ProtocolBase {
 	// ===== Enums and supporting classes =====
@@ -10,11 +12,26 @@ public abstract class DS_ProtocolBase {
 		kAllianceRed3(0x02),
 		kAllianceBlue1(0x03),
 		kAllianceBlue2(0x04),
-		kAllianceBlue3(0x05);
+		kAllianceBlue3(0x05),
+		kAllianceInvalid(0xFF);
 		
 		private final int d_value;
 		DS_Alliance(int value) { d_value = value; }
 		public int getValue() { return d_value; }
+		
+		private static final Map<Integer, DS_Alliance> intToTypeMap = 
+				new HashMap<Integer, DS_Alliance>();
+		static {
+			for (DS_Alliance type : DS_Alliance.values()) {
+				intToTypeMap.put(type.getValue(), type);
+			}
+		}
+		
+		public static DS_Alliance fromInt(int i) {
+			DS_Alliance type = intToTypeMap.get(Integer.valueOf(i));
+			if (type == null) return DS_Alliance.kAllianceInvalid;
+			return type;
+		}
 	};
 	
 	public static enum DS_ControlMode {
@@ -33,6 +50,20 @@ public abstract class DS_ProtocolBase {
 		private final int d_value;
 		DS_CommStatus(int value) { d_value = value; }
 		public int getValue() { return d_value; }
+		
+		private static final Map<Integer, DS_CommStatus> intToTypeMap = 
+				new HashMap<Integer, DS_CommStatus>();
+		static {
+			for (DS_CommStatus type : DS_CommStatus.values()) {
+				intToTypeMap.put(type.getValue(), type);
+			}
+		}
+		
+		public static DS_CommStatus fromInt(int i) {
+			DS_CommStatus type = intToTypeMap.get(Integer.valueOf(i));
+			if (type == null) return DS_CommStatus.kFailing;
+			return type;
+		}
 	};
 	
 	public static class DS_Joystick {

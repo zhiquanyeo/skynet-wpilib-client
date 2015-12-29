@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_CommStatus;
 
 public class DS_Protocol2015 extends DS_ProtocolBase {
 
@@ -16,22 +20,52 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		pControlDisabled(0x00),
 		pControlAutonomous(0x06),
 		pControlTeleoperated(0x04),
-		pControlEmergencyStop(0x80);
+		pControlEmergencyStop(0x80),
+		pControlInvalid(0xFF);
 		
 		private final int d_value;
 		ControlModes(int val) { d_value = val; }
 		public int getValue() { return d_value; }
+		
+		private static final Map<Integer, ControlModes> intToTypeMap = 
+				new HashMap<Integer, ControlModes>();
+		static {
+			for (ControlModes type : ControlModes.values()) {
+				intToTypeMap.put(type.getValue(), type);
+			}
+		}
+		
+		public static ControlModes fromInt(int i) {
+			ControlModes type = intToTypeMap.get(Integer.valueOf(i));
+			if (type == null) return ControlModes.pControlInvalid;
+			return type;
+		}
 	};
 	
 	private static enum Headers {
 		pHeaderTime(0x0F),
 		pHeaderGeneral(0x01),
 		pHeaderJoystick(0x0C),
-		pHeaderTimezone(0x10);
+		pHeaderTimezone(0x10),
+		pHeaderInvalid(0xFF);
 		
 		private final int d_value;
 		Headers(int val) { d_value = val; }
 		public int getValue() { return d_value; }
+		
+		private static final Map<Integer, Headers> intToTypeMap = 
+				new HashMap<Integer, Headers>();
+		static {
+			for (Headers type : Headers.values()) {
+				intToTypeMap.put(type.getValue(), type);
+			}
+		}
+		
+		public static Headers fromInt(int i) {
+			Headers type = intToTypeMap.get(Integer.valueOf(i));
+			if (type == null) return Headers.pHeaderInvalid;
+			return type;
+		}
 	};
 	
 	//Commands from DS -> Robot
@@ -52,11 +86,26 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		pProgramDisabled(0x01),
 		pProgramAutonomous(0x04),
 		pProgramCodePresent(0x20),
-		pProgramTeleoperated(0x02);
+		pProgramTeleoperated(0x02),
+		pProgramInvalid(0xFF);
 		
 		private final int d_value;
 		ProgramStatus(int val) { d_value = val; }
 		public int getValue() { return d_value; }
+		
+		private static final Map<Integer, ProgramStatus> intToTypeMap = 
+				new HashMap<Integer, ProgramStatus>();
+		static {
+			for (ProgramStatus type : ProgramStatus.values()) {
+				intToTypeMap.put(type.getValue(), type);
+			}
+		}
+		
+		public static ProgramStatus fromInt(int i) {
+			ProgramStatus type = intToTypeMap.get(Integer.valueOf(i));
+			if (type == null) return ProgramStatus.pProgramInvalid;
+			return type;
+		}
 	};
 	
 	// Operations the robot wants the DS to do
@@ -114,8 +163,10 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 
 	@Override
 	public DS_ClientPacket readClientPacket(byte[] buffer) {
-		if (buffer.length < 8) {
+		System.out.println("Buf size: " + buffer.length);
+		if (buffer.length < 6) {
 			// bare minimum packet length
+			System.err.println("Under minimum packet length");
 			return null;
 		}
 		
@@ -139,22 +190,25 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		int status = buffer[4];
 		int alliance = buffer[5];
 		
-		int payloadSize = buffer[6];
-		int payloadType = buffer[7];
-		
-		pkt.payload = Arrays.copyOfRange(buffer, 6, buffer.length - 1);
-		
-		if (payloadType == Headers.pHeaderTime.getValue()) {
-			pkt.packetType = ClientPacketTypes.pTZ;
-			pkt.tzData = bufferToTZData(pkt.payload);
-		}
-		else if (payloadType == Headers.pHeaderJoystick.getValue()) {
-			pkt.packetType = ClientPacketTypes.pJoystick;
-			pkt.joysticks = bufferToJoystick(pkt.payload);
-		}
-		else {
-			// Invalid data
-			return null;
+		if (buffer.length > 6) {
+			int payloadSize = buffer[6];
+			int payloadType = buffer[7];
+			
+			pkt.payload = Arrays.copyOfRange(buffer, 6, buffer.length - 1);
+			
+			if (payloadType == Headers.pHeaderTime.getValue()) {
+				pkt.packetType = ClientPacketTypes.pTZ;
+				pkt.tzData = bufferToTZData(pkt.payload);
+			}
+			else if (payloadType == Headers.pHeaderJoystick.getValue()) {
+				pkt.packetType = ClientPacketTypes.pJoystick;
+				pkt.joysticks = bufferToJoystick(pkt.payload);
+			}
+			else {
+				// Invalid data
+				System.err.println("Invalid Data");
+				return null;
+			}
 		}
 		
 		return pkt;
