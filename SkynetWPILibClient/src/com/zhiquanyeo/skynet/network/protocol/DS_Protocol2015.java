@@ -15,7 +15,7 @@ import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_CommStatus;
 
 public class DS_Protocol2015 extends DS_ProtocolBase {
 
-	private static enum ControlModes {
+	public static enum ControlModes {
 		pControlTest(0x05),
 		pControlDisabled(0x00),
 		pControlAutonomous(0x06),
@@ -42,7 +42,7 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		}
 	};
 	
-	private static enum Headers {
+	public static enum Headers {
 		pHeaderTime(0x0F),
 		pHeaderGeneral(0x01),
 		pHeaderJoystick(0x0C),
@@ -69,7 +69,7 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 	};
 	
 	//Commands from DS -> Robot
-	private static enum ClientRequestBytes {
+	public static enum ClientRequestBytes {
 		pStatusNormal(0x10),
 		pStatusInvalid(0x00),
 		pStatusRebootRio(0x18),		// Reboot RIO
@@ -81,7 +81,7 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 	};
 	
 	// Echo codes from the Robot
-	private static enum ProgramStatus {
+	public static enum ProgramStatus {
 		pProgramTest(0x08),
 		pProgramDisabled(0x01),
 		pProgramAutonomous(0x04),
@@ -109,7 +109,7 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 	};
 	
 	// Operations the robot wants the DS to do
-	private static enum RobotRequestBytes {
+	public static enum RobotRequestBytes {
 		pRobotRequestTime(0x01);
 		
 		private final int d_value;
@@ -131,6 +131,8 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		public ClientPacketTypes packetType;
 		public DS_TZData tzData;
 	}
+	
+	// === Class Definition ===
 	
 	public DS_Protocol2015() {
 		reset();
