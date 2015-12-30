@@ -3,6 +3,8 @@ package edu.wpi.first.wpilibj.communication;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -274,6 +276,8 @@ public class FRCNetworkCommunicationsLibrary {
 	private ProgramStatus d_programStatus = ProgramStatus.pProgramDisabled;
 	private DS_ControlMode d_currentRobotMode = DS_ControlMode.kControlDisabled;
 	
+	private DatagramSocket d_outboundSocket;
+	
 	// Accessors/Setters
 	public synchronized boolean isSystemActive() {
 		if (d_lastPacket != null && 
@@ -293,7 +297,7 @@ public class FRCNetworkCommunicationsLibrary {
 	public synchronized DS_Joystick getJoystick(int joystickNum) {
 		if (d_lastPacket != null) {
 			ArrayList<DS_Joystick> joysticks = d_lastPacket.joysticks;
-			if (joystickNum < 0 || joystickNum >= joysticks.size()) {
+			if (joysticks == null || joystickNum < 0 || joystickNum >= joysticks.size()) {
 				return null;
 			}
 			return joysticks.get(joystickNum);
@@ -356,7 +360,7 @@ public class FRCNetworkCommunicationsLibrary {
 	protected IDSNetworkThreadListener d_networkListener = new IDSNetworkThreadListener() {
 
 		@Override
-		public void onClientPacketReceived(DS_ClientPacket packet) {
+		public void onClientPacketReceived(DS_ClientPacket packet, InetAddress address) {
 			
 			d_dsAttached = true;
 			
@@ -368,8 +372,11 @@ public class FRCNetworkCommunicationsLibrary {
 				else if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pTZ) {
 					System.out.println("Received packet with TZ data");
 				}
+				else if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pGeneral) {
+					System.out.println("Received general packet");
+				}
 				else {
-					System.err.println("Unknown Packet Type");
+					System.err.println("Unknown Packet Type: ");
 				}
 			}
 			
@@ -399,6 +406,14 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.voltage = 12.2; // Fake voltage for now
 			
 			// TODO Send the response packet
+			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
+			DatagramPacket outPkt = new DatagramPacket(sendBuf, sendBuf.length, address, s_protocol.getClientPort());
+			try {
+				d_outboundSocket.send(outPkt);
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 	};
@@ -409,6 +424,13 @@ public class FRCNetworkCommunicationsLibrary {
 			d_networkThread = new DSNetworkThread(s_protocol, d_networkListener);
 		}
 		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			d_outboundSocket = new DatagramSocket();
+		}
+		catch (SocketException e) {
 			e.printStackTrace();
 		}
 		
@@ -448,13 +470,20 @@ public class FRCNetworkCommunicationsLibrary {
 		public void run() {
 			System.out.println("DS Network Thread starting");
 			while (d_shouldListen) {
-				byte[] buf = new byte[512];
-				
-				DatagramPacket packet = new DatagramPacket(buf, buf.length);
-				DS_ClientPacket clientPacket = 
-						s_protocol.readClientPacket(Arrays.copyOf(buf, packet.getLength()));
-				if (clientPacket != null && d_listener != null) {
-					d_listener.onClientPacketReceived(clientPacket);
+				try {
+					byte[] buf = new byte[512];
+					
+					DatagramPacket packet = new DatagramPacket(buf, buf.length);
+					d_socket.receive(packet);
+					DS_ClientPacket clientPacket = 
+							s_protocol.readClientPacket(Arrays.copyOf(packet.getData(), packet.getLength()));
+					if (clientPacket != null && d_listener != null) {
+						d_listener.onClientPacketReceived(clientPacket, packet.getAddress());
+					}
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+					d_shouldListen = false;
 				}
 			}
 			d_socket.close();
@@ -471,6 +500,6 @@ public class FRCNetworkCommunicationsLibrary {
 	}
 	
 	private static interface IDSNetworkThreadListener {
-		void onClientPacketReceived(DS_ClientPacket packet);
+		void onClientPacketReceived(DS_ClientPacket packet, InetAddress hostAddress);
 	}
 }

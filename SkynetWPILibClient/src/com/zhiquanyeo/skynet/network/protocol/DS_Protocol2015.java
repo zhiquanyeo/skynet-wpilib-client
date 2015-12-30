@@ -119,7 +119,8 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 	
 	public static enum ClientPacketTypes {
 		pTZ,
-		pJoystick
+		pJoystick,
+		pGeneral
 	};
 	
 	public static class DS_TZData {
@@ -191,6 +192,28 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		int controlMode = buffer[3];
 		int status = buffer[4];
 		int alliance = buffer[5];
+		
+		ControlModes controlModeType = ControlModes.fromInt(controlMode);
+		switch (controlModeType) {
+			case pControlTest:
+				pkt.controlMode = DS_ControlMode.kControlTest;
+				break;
+			case pControlTeleoperated:
+				pkt.controlMode = DS_ControlMode.kControlTeleoperated;
+				break;
+			case pControlAutonomous:
+				pkt.controlMode = DS_ControlMode.kControlAutonomous;
+				break;
+			case pControlEmergencyStop:
+				pkt.controlMode = DS_ControlMode.kControlEmergencyStop;
+				break;
+			default:
+				pkt.controlMode = DS_ControlMode.kControlDisabled;
+		}
+		
+		pkt.status = status;
+		pkt.alliance = DS_Alliance.fromInt(alliance);
+		pkt.packetType = ClientPacketTypes.pGeneral;
 		
 		if (buffer.length > 6) {
 			int payloadSize = buffer[6];
@@ -358,6 +381,8 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 			int frameSize = buffer[currPtr];
 			currPtr++;
 			
+			if (currPtr >= buffer.length) break;
+			
 			DS_Joystick stickData = new DS_Joystick();
 			
 			if (buffer[currPtr] != Headers.pHeaderJoystick.getValue()) {
@@ -397,9 +422,17 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 				stickData.numPovHats = buffer[currPtr++];
 				stickData.povHats = new int[stickData.numPovHats];
 				
-				//currPtr is now pointing at the first of POV values
-				for (int i = 0; i < stickData.numPovHats; i++) {
-					stickData.povHats[i] = (buffer[currPtr++] << 8) + buffer[currPtr++];
+				// Error Checking:
+				//TODO Find out why this is happening
+				if (stickData.numPovHats > 0 && currPtr >= buffer.length-1) {
+					stickData.numPovHats = 0;
+					stickData.povHats = new int[0];
+				}
+				else {
+					//currPtr is now pointing at the first of POV values
+					for (int i = 0; i < stickData.numPovHats; i++) {
+						stickData.povHats[i] = (buffer[currPtr++] << 8) + buffer[currPtr++];
+					}
 				}
 				
 				joysticks.add(stickData);

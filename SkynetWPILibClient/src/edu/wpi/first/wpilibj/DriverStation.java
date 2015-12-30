@@ -74,6 +74,10 @@ public class DriverStation implements RobotState.Interface {
     protected DriverStation() {
     	d_dataSem = new Object();
     	
+    	for (int i = 0; i < kJoystickPorts; i++) {
+    		d_joystickButtons[i] = new HALJoystickButtons();
+    	}
+    	
     	d_thread = new Thread(new DriverStationTask(this), "FRCDriverStation");
     	d_thread.setPriority((d_thread.NORM_PRIORITY + d_thread.MAX_PRIORITY) / 2);
     	
