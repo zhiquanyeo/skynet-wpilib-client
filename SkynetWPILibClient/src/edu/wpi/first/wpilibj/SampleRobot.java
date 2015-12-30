@@ -1,5 +1,10 @@
 package edu.wpi.first.wpilibj;
 
+import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
+import edu.wpi.first.wpilibj.communication.UsageReporting;
+import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary.tInstances;
+import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary.tResourceType;
+
 public class SampleRobot extends RobotBase {
 	
 	private boolean m_robotMainOverridden;
@@ -54,7 +59,55 @@ public class SampleRobot extends RobotBase {
 	
 	@Override
 	public void startCompetition() {
-		// TODO Implement
+		UsageReporting.report(tResourceType.kResourceType_Framework, tInstances.kFramework_Sample);
+		
+		robotInit();
+		
+		// Tell the DS that the robot is ready to be enabled
+		FRCNetworkCommunicationsLibrary.FRCNetworkCommunicationObserveUserProgramStarting();
+		
+		robotMain();
+		if (!m_robotMainOverridden) {
+			// First and one-time init
+			//LiveWindow.setEnabled(false);
+			
+			while (true) {
+				if (isDisabled()) {
+					d_ds.InDisabled(true);
+					disabled();
+					d_ds.InDisabled(false);
+					while (isDisabled()) {
+						Timer.delay(0.01);
+					}
+				}
+				else if (isAutonomous()) {
+					d_ds.InAutonomous(true);
+					autonomous();
+					d_ds.InAutonomous(false);
+					while (isAutonomous() && !isDisabled()) {
+						Timer.delay(0.01);
+					}
+				}
+				else if (isTest()) {
+					//LiveWindow.setEnabled(true);
+					d_ds.InTest(true);
+					test();
+					d_ds.InTest(false);
+					while (isTest() && isEnabled()) {
+						Timer.delay(0.01);
+					}
+					//LiveWindow.setEnabled(false);
+				}
+				else {
+					d_ds.InOperatorControl(true);
+					operatorControl();
+					d_ds.InOperatorControl(false);
+					while (isOperatorControl() && !isDisabled()) {
+						Timer.delay(0.01);
+					}
+				}
+			}
+		}
 	}
 
 }

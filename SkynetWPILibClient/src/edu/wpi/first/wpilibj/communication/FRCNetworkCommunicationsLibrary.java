@@ -87,6 +87,50 @@ public class FRCNetworkCommunicationsLibrary {
 	    public static final int kResourceType_DigitalFilter = 57;
 	};
 	
+	public static interface tInstances {
+	    public static final int kLanguage_LabVIEW = 1;
+	    public static final int kLanguage_CPlusPlus = 2;
+	    public static final int kLanguage_Java = 3;
+	    public static final int kLanguage_Python = 4;
+
+	    public static final int kCANPlugin_BlackJagBridge = 1;
+	    public static final int kCANPlugin_2CAN = 2;
+
+	    public static final int kFramework_Iterative = 1;
+	    public static final int kFramework_Sample = 2;
+	    public static final int kFramework_CommandControl = 3;
+
+	    public static final int kRobotDrive_ArcadeStandard = 1;
+	    public static final int kRobotDrive_ArcadeButtonSpin = 2;
+	    public static final int kRobotDrive_ArcadeRatioCurve = 3;
+	    public static final int kRobotDrive_Tank = 4;
+	    public static final int kRobotDrive_MecanumPolar = 5;
+	    public static final int kRobotDrive_MecanumCartesian = 6;
+
+	    public static final int kDriverStationCIO_Analog = 1;
+	    public static final int kDriverStationCIO_DigitalIn = 2;
+	    public static final int kDriverStationCIO_DigitalOut = 3;
+
+	    public static final int kDriverStationEIO_Acceleration = 1;
+	    public static final int kDriverStationEIO_AnalogIn = 2;
+	    public static final int kDriverStationEIO_AnalogOut = 3;
+	    public static final int kDriverStationEIO_Button = 4;
+	    public static final int kDriverStationEIO_LED = 5;
+	    public static final int kDriverStationEIO_DigitalIn = 6;
+	    public static final int kDriverStationEIO_DigitalOut = 7;
+	    public static final int kDriverStationEIO_FixedDigitalOut = 8;
+	    public static final int kDriverStationEIO_PWM = 9;
+	    public static final int kDriverStationEIO_Encoder = 10;
+	    public static final int kDriverStationEIO_TouchSlider = 11;
+
+	    public static final int kADXL345_SPI = 1;
+	    public static final int kADXL345_I2C = 2;
+
+	    public static final int kCommand_Scheduler = 1;
+
+	    public static final int kSmartDashboard_Instance = 1;
+	};
+	
 	/**
 	 * Report the usage of a resource of interest
 	 * @param resource one of the values in tResourceType above
@@ -132,6 +176,7 @@ public class FRCNetworkCommunicationsLibrary {
 	
 	public static void FRCNetworkCommunicationReserve() {
 		// Initialize the HAL Library (see HALAthena.cpp)
+		// TODO We could also potentially start the connection here
 	}
 	
 	public static HALControlWord HALGetControlWord() {
@@ -231,6 +276,7 @@ public class FRCNetworkCommunicationsLibrary {
 	}
 	
 	public static float HALGetMatchTime() {
+		// When the mode switches, we want to set a time
 		// TBD - Implement
 		return 0.0f;
 	}
