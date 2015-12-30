@@ -34,7 +34,7 @@ public abstract class Subsystem implements NamedSendable {
 		}
 		else {
 			boolean found = false;
-			Enumeration<E> requirements = command.getRequirements();
+			Enumeration requirements = command.getRequirements();
 			while(requirements.hasMoreElements()) {
 				if (requirements.nextElement().equals(this)) {
 					found = true;
