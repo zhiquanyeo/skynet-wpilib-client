@@ -9,6 +9,9 @@ import java.util.logging.Logger;
 import com.zhiquanyeo.skynet.defaultrobot.DefaultRobot;
 import com.zhiquanyeo.skynet.network.SkynetConnection;
 
+import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
+import edu.wpi.first.wpilibj.internal.SkynetTimer;
+
 public class RobotBaseRunner implements Runnable {
 	private final static Logger LOGGER = Logger.getLogger(RobotBaseRunner.class.getName());
 	
@@ -18,10 +21,21 @@ public class RobotBaseRunner implements Runnable {
 		d_connection = conn;
 	}
 	
+	public static void initializeHardwareConfiguration() {
+		FRCNetworkCommunicationsLibrary.FRCNetworkCommunicationReserve();
+		
+		Timer.SetImplementation(new SkynetTimer());
+		//HLUsageReporting.SetImplementation(new HardwareHLUsageReporting());
+		RobotState.SetImplementation(DriverStation.getInstance());
+	}
+	
 	@Override
 	public void run() {
 		//This takes the place of 'main' in RobotBase
 		LOGGER.info("=== RobotBaseRunner START ===");
+		LOGGER.info("Initializing Hardware");
+		
+		initializeHardwareConfiguration();
 		
 		boolean errorOnExit = false;
 		

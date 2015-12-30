@@ -3,12 +3,20 @@ package edu.wpi.first.wpilibj;
 public abstract class RobotBase {
 	public static final int ROBOT_TASK_PRIORITY = 101;
 	
+	protected final DriverStation d_ds;
+	
 	protected RobotBase() {
 		System.out.println("Starting RobotBase");
+		// TODO NetworkTables stuff
+		d_ds = DriverStation.getInstance();
 	}
 	
 	public void free() {
 		
+	}
+	
+	public static boolean isSimulation() {
+		return true;
 	}
 	
 	public static boolean isReal() {
@@ -16,27 +24,27 @@ public abstract class RobotBase {
 	}
 	
 	public boolean isDisabled() {
-		return false; //TODO Implement
+		return d_ds.isDisabled();
 	}
 	
 	public boolean isEnabled() {
-		return true; //TODO Implement
+		return d_ds.isEnabled();
 	}
 	
 	public boolean isAutonomous() {
-		return false;
+		return d_ds.isAutonomous();
 	}
 	
 	public boolean isTest() {
-		return false;
+		return d_ds.isTest();
 	}
 	
 	public boolean isOperatorControl() {
-		return false;
+		return d_ds.isOperatorControl();
 	}
 	
 	public boolean isNewDataAvailable() {
-		return false;
+		return d_ds.isNewControlData();
 	}
 	
 	public abstract void startCompetition();
@@ -57,4 +65,5 @@ public abstract class RobotBase {
 		}
 		
 	}
+	
 }
