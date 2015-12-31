@@ -60,6 +60,22 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		d_subscriptions.put(topic, subscriber);
 		return true;
 	}
+	
+	protected boolean publish(String topic, byte[] payload) {
+		if (d_connection == null) {
+			System.err.println("No SkynetConnection set! Can't publish");
+			return false;
+		}
+		
+		boolean success = false;
+		try {
+			success = d_connection.publish(topic, payload);
+		}
+		catch (Exception e) {
+			success = false;
+		}
+		return success;
+	}
 
 	@Override
 	public void onConnected() {
