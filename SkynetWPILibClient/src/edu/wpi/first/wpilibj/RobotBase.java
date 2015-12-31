@@ -1,5 +1,7 @@
 package edu.wpi.first.wpilibj;
 
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+
 public abstract class RobotBase {
 	public static final int ROBOT_TASK_PRIORITY = 101;
 	
@@ -7,8 +9,10 @@ public abstract class RobotBase {
 	
 	protected RobotBase() {
 		System.out.println("Starting RobotBase");
-		// TODO NetworkTables stuff
+		NetworkTable.setServerMode();
 		d_ds = DriverStation.getInstance();
+		NetworkTable.getTable("");
+		NetworkTable.getTable("LiveWindow").getSubTable("~STATUS~").putBoolean("LW Enabled", false);
 	}
 	
 	public void free() {

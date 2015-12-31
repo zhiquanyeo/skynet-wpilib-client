@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import com.zhiquanyeo.skynet.defaultrobot.DefaultRobot;
 import com.zhiquanyeo.skynet.network.SkynetConnection;
+import com.zhiquanyeo.skynet.network.SkynetProxy;
 
 import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
 import edu.wpi.first.wpilibj.internal.SkynetTimer;
@@ -36,6 +37,10 @@ public class RobotBaseRunner implements Runnable {
 		LOGGER.info("Initializing Hardware");
 		
 		initializeHardwareConfiguration();
+		
+		// Initialize the skynet connection
+		// TODO Potentially make this static?
+		SkynetProxy.setSkynetConnection(d_connection);
 		
 		boolean errorOnExit = false;
 		

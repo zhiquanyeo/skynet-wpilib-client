@@ -451,7 +451,6 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
 			responsePkt.voltage = 12.2; // Fake voltage for now
 			
-			// TODO Send the response packet
 			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
 			DatagramPacket outPkt = new DatagramPacket(sendBuf, sendBuf.length, address, s_protocol.getClientPort());
 			try {
