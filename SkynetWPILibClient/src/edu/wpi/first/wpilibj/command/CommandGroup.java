@@ -236,4 +236,16 @@ public class CommandGroup extends Command {
 			}
 		}
 	}
+
+	@Override
+	public void initTable(ITable subtable) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ITable getTable() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
