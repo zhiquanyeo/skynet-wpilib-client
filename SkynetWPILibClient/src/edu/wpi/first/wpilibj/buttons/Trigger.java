@@ -9,8 +9,8 @@ public abstract class Trigger implements Sendable {
 	public abstract boolean get();
 	
 	public boolean grab() {
-		// TODO Implement
-		return false;
+		return get() ||
+				(table != null && table.getBoolean("pressed", false));
 	}
 	
 	public void whenActive(final Command command) {
@@ -124,7 +124,9 @@ public abstract class Trigger implements Sendable {
 	
 	public void initTable(ITable table) {
 		this.table = table;
-		// TODO Implement
+		if (table != null) {
+			table.putBoolean("pressed", get());
+		}
 	}
 	
 	public ITable getTable() {

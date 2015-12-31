@@ -7,6 +7,8 @@ import java.util.Vector;
 import edu.wpi.first.wpilibj.HLUsageReporting;
 import edu.wpi.first.wpilibj.NamedSendable;
 import edu.wpi.first.wpilibj.buttons.Trigger.ButtonScheduler;
+import edu.wpi.first.wpilibj.networktables2.type.NumberArray;
+import edu.wpi.first.wpilibj.networktables2.type.StringArray;
 import edu.wpi.first.wpilibj.tables.ITable;
 
 public class Scheduler implements NamedSendable {
@@ -17,18 +19,18 @@ public class Scheduler implements NamedSendable {
 		return instance == null ? instance = new Scheduler() : instance;
 	}
 	
-	private Hashtable commandTable = new Hashtable();
-	private Set subsystems = new Set();
+	private Hashtable<Command, LinkedListElement> commandTable = new Hashtable<>();
+	private Set<Subsystem> subsystems = new Set<>();
 	private LinkedListElement firstCommand;
 	private LinkedListElement lastCommand;
 	
 	private boolean adding = false;
 	private boolean disabled = false;
 	
-	private Vector additions = new Vector();
+	private Vector<Command> additions = new Vector<>();
 	private ITable d_table;
 	
-	private Vector buttons;
+	private Vector<ButtonScheduler> buttons;
 	private boolean d_runningCommandsChanged;
 	
 	private Scheduler() {
@@ -43,7 +45,7 @@ public class Scheduler implements NamedSendable {
 	
 	public void addButton(ButtonScheduler button) {
 		if (buttons == null) {
-			buttons = new Vector();
+			buttons = new Vector<>();
 		}
 		buttons.addElement(button);
 	}
@@ -59,9 +61,9 @@ public class Scheduler implements NamedSendable {
 		}
 		
 		if (!commandTable.containsKey(command)) {
-			Enumeration requirements = command.getRequirements();
+			Enumeration<Subsystem> requirements = command.getRequirements();
 			while (requirements.hasMoreElements()) {
-				Subsystem lock = (Subsystem)requirements.nextElement();
+				Subsystem lock = requirements.nextElement();
 				if (lock.getCurrentCommand() != null && !lock.getCurrentCommand().isInterruptible()) {
 					return;
 				}
@@ -108,7 +110,7 @@ public class Scheduler implements NamedSendable {
 		
 		if (buttons != null) {
 			for (int i = buttons.size() - 1 ; i >= 0; i--) {
-				((ButtonScheduler) buttons.elementAt(i)).execute();
+				(buttons.elementAt(i)).execute();
 			}
 		}
 		
@@ -127,9 +129,9 @@ public class Scheduler implements NamedSendable {
 		}
 		additions.removeAllElements();
 		
-		Enumeration locks = subsystems.getElements();
+		Enumeration<Subsystem> locks = subsystems.getElements();
 		while (locks.hasMoreElements()) {
-			Subsystem lock = (Subsystem)locks.nextElement();
+			Subsystem lock = locks.nextElement();
 			if (lock.getCurrentCommand() == null) {
 				_add(lock.getDefaultCommand());
 			}
@@ -150,7 +152,7 @@ public class Scheduler implements NamedSendable {
 			return;
 		}
 		
-		LinkedListElement e = (LinkedListElement) commandTable.get(command);
+		LinkedListElement e = commandTable.get(command);
 		commandTable.remove(command);
 		
 		if (e.equals(lastCommand)) {
@@ -161,9 +163,9 @@ public class Scheduler implements NamedSendable {
 		}
 		e.remove();
 		
-		Enumeration requirements = command.getRequirements();
+		Enumeration<Subsystem> requirements = command.getRequirements();
 		while (requirements.hasMoreElements()) {
-			((Subsystem) requirements.nextElement()).setCurrentCommand(null);
+			requirements.nextElement().setCurrentCommand(null);
 		}
 		
 		command.removed();
@@ -183,16 +185,24 @@ public class Scheduler implements NamedSendable {
 		disabled = false;
 	}
 	
+	private StringArray commands;
+	private NumberArray ids, toCancel;
+	
 	@Override
 	public void initTable(ITable subtable) {
-		// TODO Auto-generated method stub
+		d_table = subtable;
+		commands = new StringArray();
+		ids = new NumberArray();
+		toCancel = new NumberArray();
 		
+		d_table.putValue("Names", commands);
+		d_table.putValue("Ids", ids);
+		d_table.putValue("Cancel", toCancel);
 	}
 
 	@Override
 	public ITable getTable() {
-		// TODO Auto-generated method stub
-		return null;
+		return d_table;
 	}
 
 	@Override
@@ -209,8 +219,31 @@ public class Scheduler implements NamedSendable {
 		return "Scheduler";
 	}
 	
-	// TODO Implement NetworkTables stuff
 	private void updateTable() {
-		
+		if (d_table != null) {
+			d_table.retrieveValue("Cancel", toCancel);
+			if (toCancel.size() > 0) {
+				for (LinkedListElement e = firstCommand; e != null; e = e.getNext()) {
+					for (int i = 0; i < toCancel.size(); i++) {
+						if (e.getData().hashCode() == toCancel.get(i)) {
+							e.getData().cancel();
+						}
+					}
+				}
+				toCancel.setSize(0);
+				d_table.putValue("Cancel", toCancel);
+			}
+			
+			if (d_runningCommandsChanged) {
+				commands.setSize(0);
+				ids.setSize(0);
+				for (LinkedListElement e = firstCommand; e != null; e = e.getNext()) {
+					commands.add(e.getData().getName());
+					ids.add(e.getData().hashCode());
+				}
+				d_table.putValue("Names", commands);
+				d_table.putValue("Ids", ids);
+			}
+		}
 	}
 }

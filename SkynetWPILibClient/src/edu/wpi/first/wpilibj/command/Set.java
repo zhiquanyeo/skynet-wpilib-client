@@ -3,19 +3,19 @@ package edu.wpi.first.wpilibj.command;
 import java.util.Enumeration;
 import java.util.Vector;
 
-class Set {
-	Vector set = new Vector();
+class Set<V> {
+	Vector<V> set = new Vector<V>();
 	
 	public Set() {}
 	
-	public void add(Object o) {
+	public void add(V o) {
 		if (set.contains(o)) return;
 		set.addElement(o);
 	}
 	
-	public void add(Set s) {
-		Enumeration stuff = s.getElements();
-		for (Enumeration e = stuff; e.hasMoreElements();) {
+	public void add(Set<V> s) {
+		Enumeration<V> stuff = s.getElements();
+		for (Enumeration<V> e = stuff; e.hasMoreElements();) {
 			add(e.nextElement());
 		}
 	}
@@ -24,7 +24,7 @@ class Set {
 		return set.contains(o);
 	}
 	
-	public Enumeration getElements() {
+	public Enumeration<V> getElements() {
 		return set.elements();
 	}
 }

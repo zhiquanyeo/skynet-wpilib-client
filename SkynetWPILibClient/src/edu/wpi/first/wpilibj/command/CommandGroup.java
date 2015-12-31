@@ -3,12 +3,10 @@ package edu.wpi.first.wpilibj.command;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import edu.wpi.first.wpilibj.tables.ITable;
-
 public class CommandGroup extends Command {
 
-	Vector d_commands = new Vector();
-	Vector d_children = new Vector();
+	Vector<Entry> d_commands = new Vector<>();
+	Vector<Entry> d_children = new Vector<>();
 	int d_currentCommandIndex = -1;
 	
 	public CommandGroup() {}
@@ -26,8 +24,8 @@ public class CommandGroup extends Command {
 		command.setParent(this);
 		
 		d_commands.addElement(new Entry(command, Entry.IN_SEQUENCE));
-		for (Enumeration e = command.getRequirements(); e.hasMoreElements();) {
-			requires((Subsystem) e.nextElement());
+		for (Enumeration<Subsystem> e = command.getRequirements(); e.hasMoreElements();) {
+			requires(e.nextElement());
 		}
 	}
 	
@@ -43,8 +41,8 @@ public class CommandGroup extends Command {
 		command.setParent(this);
 		
 		d_commands.addElement(new Entry(command, Entry.IN_SEQUENCE, timeout));
-		for (Enumeration e = command.getRequirements(); e.hasMoreElements();) {
-			requires((Subsystem) e.nextElement());
+		for (Enumeration<Subsystem> e = command.getRequirements(); e.hasMoreElements();) {
+			requires(e.nextElement());
 		}
 	}
 	
@@ -57,8 +55,8 @@ public class CommandGroup extends Command {
 		command.setParent(this);
 		
 		d_commands.addElement(new Entry(command, Entry.BRANCH_CHILD));
-		for (Enumeration e = command.getRequirements(); e.hasMoreElements();) {
-			requires((Subsystem) e.nextElement());
+		for (Enumeration<Subsystem> e = command.getRequirements(); e.hasMoreElements();) {
+			requires(e.nextElement());
 		}
 	}
 	
@@ -74,8 +72,8 @@ public class CommandGroup extends Command {
 		command.setParent(this);
 		
 		d_commands.addElement(new Entry(command, Entry.BRANCH_CHILD, timeout));
-		for (Enumeration e = command.getRequirements(); e.hasMoreElements();) {
-			requires((Subsystem) e.nextElement());
+		for (Enumeration<Subsystem> e = command.getRequirements(); e.hasMoreElements();) {
+			requires(e.nextElement());
 		}
 	}
 	
@@ -111,7 +109,7 @@ public class CommandGroup extends Command {
 				}
 			}
 			
-			entry = (Entry) d_commands.elementAt(d_currentCommandIndex);
+			entry = d_commands.elementAt(d_currentCommandIndex);
 			cmd = null;
 			
 			switch (entry.state) {
@@ -140,7 +138,7 @@ public class CommandGroup extends Command {
 		
 		// Run children
 		for (int i = 0; i < d_children.size(); i++) {
-			entry = (Entry) d_children.elementAt(i);
+			entry = d_children.elementAt(i);
 			Command child = entry.command;
 			if (entry.isTimedOut()) {
 				child._cancel();
@@ -154,14 +152,14 @@ public class CommandGroup extends Command {
 	
 	void _end() {
 		if (d_currentCommandIndex != -1 && d_currentCommandIndex < d_commands.size()) {
-			Command cmd = ((Entry) d_commands.elementAt(d_currentCommandIndex)).command;
+			Command cmd = (d_commands.elementAt(d_currentCommandIndex)).command;
 			cmd._cancel();
 			cmd.removed();
 		}
 		
-		Enumeration children = d_children.elements();
+		Enumeration<Entry> children = d_children.elements();
 		while (children.hasMoreElements()) {
-			Command cmd = ((Entry) children.nextElement()).command;
+			Command cmd = (children.nextElement()).command;
 			cmd._cancel();
 			cmd.removed();
 		}
@@ -187,14 +185,14 @@ public class CommandGroup extends Command {
 		}
 		
 		if (d_currentCommandIndex != -1 && d_currentCommandIndex < d_commands.size()) {
-			Command cmd = ((Entry) d_commands.elementAt(d_currentCommandIndex)).command;
+			Command cmd = (d_commands.elementAt(d_currentCommandIndex)).command;
 			if (!cmd.isInterruptible()) {
 				return false;
 			}
 		}
 		
 		for (int i = 0; i < d_children.size(); i++) {
-			if (!((Entry) d_children.elementAt(i)).command.isInterruptible()) {
+			if (!(d_children.elementAt(i)).command.isInterruptible()) {
 				return false;
 			}
 		}
@@ -237,15 +235,4 @@ public class CommandGroup extends Command {
 		}
 	}
 
-	@Override
-	public void initTable(ITable subtable) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public ITable getTable() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

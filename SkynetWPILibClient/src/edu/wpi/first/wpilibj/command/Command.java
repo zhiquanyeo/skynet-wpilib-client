@@ -7,13 +7,14 @@ import edu.wpi.first.wpilibj.NamedSendable;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.tables.ITable;
+import edu.wpi.first.wpilibj.tables.ITableListener;
 
 public abstract class Command implements NamedSendable {
 	private String d_name;
 	private double d_startTime = -1;
 	private double d_timeout = -1;
 	private boolean d_initialized = false;
-	private Set d_requirements;
+	private Set<Subsystem> d_requirements;
 	private boolean d_running = false;
 	private boolean d_interruptible = true;
 	private boolean d_canceled = false;
@@ -69,7 +70,7 @@ public abstract class Command implements NamedSendable {
 		validate("Cannot add new requirement to command");
 		if (subsystem != null) {
 			if (d_requirements == null) {
-				d_requirements = new Set();
+				d_requirements = new Set<>();
 			}
 			d_requirements.add(subsystem);
 		}
@@ -93,7 +94,7 @@ public abstract class Command implements NamedSendable {
 		d_canceled = false;
 		d_running = false;
 		if (table != null) {
-			//TODO Implement
+			table.putBoolean("running", false);
 		}
 	}
 	
@@ -137,7 +138,7 @@ public abstract class Command implements NamedSendable {
 		return d_timeout != -1 && timeSinceInitialized() >= d_timeout;
 	}
 	
-	synchronized Enumeration getRequirements() {
+	synchronized Enumeration<Subsystem> getRequirements() {
 		return d_requirements == null ? emptyEnumeration : d_requirements.getElements();
 	}
 	
@@ -158,7 +159,7 @@ public abstract class Command implements NamedSendable {
 		lockChanges();
 		this.d_parent = parent;
 		if (table != null) {
-			//TODO Implement
+			table.putBoolean("isParented", true);
 		}
 	}
 	
@@ -174,7 +175,7 @@ public abstract class Command implements NamedSendable {
 		d_running = true;
 		d_startTime = -1;
 		if (table != null) {
-			// TODO Implement
+			table.putBoolean("running", true);
 		}
 	}
 	
@@ -223,12 +224,12 @@ public abstract class Command implements NamedSendable {
 		return d_runWhenDisabled;
 	}
 	
-	private static Enumeration emptyEnumeration = new Enumeration() {
+	private static Enumeration<Subsystem> emptyEnumeration = new Enumeration<Subsystem>() {
 		public boolean hasMoreElements() {
 			return false;
 		}
 		
-		public Object nextElement() {
+		public Subsystem nextElement() {
 			throw new NoSuchElementException();
 		}
 	};
@@ -241,7 +242,36 @@ public abstract class Command implements NamedSendable {
 		return "Command";
 	}
 	
+	private ITableListener listener = new ITableListener() {
+
+		@Override
+		public void valueChanged(ITable table, String key, Object value, boolean isNew) {
+			if (((Boolean) value).booleanValue()) {
+				start();
+			}
+			else {
+				cancel();
+			}
+		}
+		
+	};
+	
 	private ITable table;
 	
-	// TODO Implement the rest
+	public void initTable(ITable table) {
+		if (this.table != null) {
+			this.table.removeTableListener(listener);
+		}
+		this.table = table;
+		if (table != null) {
+			table.putString("name", getName());
+			table.putBoolean("running", isRunning());
+			table.putBoolean("isParented", d_parent != null);
+			table.addTableListener("running", listener, false);
+		}
+	}
+	
+	public ITable getTable() {
+		return table;
+	}
 }

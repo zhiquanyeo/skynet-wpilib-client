@@ -1,7 +1,6 @@
 package edu.wpi.first.wpilibj.command;
 
 import java.util.Enumeration;
-import java.util.Vector;
 
 import edu.wpi.first.wpilibj.NamedSendable;
 import edu.wpi.first.wpilibj.tables.ITable;
@@ -13,7 +12,7 @@ public abstract class Subsystem implements NamedSendable {
 	
 	private Command defaultCommand;
 	private String name;
-	private static Vector allSubsystems = new Vector();
+	//private static Vector<Subsystem> allSubsystems = new Vector<>();
 	
 	public Subsystem(String name) {
 		this.name = name;
@@ -34,7 +33,7 @@ public abstract class Subsystem implements NamedSendable {
 		}
 		else {
 			boolean found = false;
-			Enumeration requirements = command.getRequirements();
+			Enumeration<Subsystem> requirements = command.getRequirements();
 			while(requirements.hasMoreElements()) {
 				if (requirements.nextElement().equals(this)) {
 					found = true;
@@ -48,7 +47,11 @@ public abstract class Subsystem implements NamedSendable {
 		
 		if (table != null) {
 			if (defaultCommand != null) {
-				//TODO Implement
+				table.putBoolean("hasDefault", true);
+				table.putString("default", defaultCommand.getName());
+			}
+			else {
+				table.putBoolean("hasDefault", false);
 			}
 		}
 	}
@@ -69,7 +72,13 @@ public abstract class Subsystem implements NamedSendable {
 	void confirmCommand() {
 		if (currentCommandChanged) {
 			if (table != null) {
-				// TODO Implement
+				if (currentCommand != null) {
+					table.putBoolean("hasCommand", true);
+					table.putString("command", currentCommand.getName());
+				}
+				else {
+					table.putBoolean("hasCommand", false);
+				}
 			}
 			currentCommandChanged = false;
 		}
@@ -93,5 +102,28 @@ public abstract class Subsystem implements NamedSendable {
 	
 	private ITable table;
 	
-	// TODO Implement table stuff
+	public void initTable(ITable table) {
+		this.table = table;
+		if (table != null) {
+			if (defaultCommand != null) {
+				table.putBoolean("hasDefault", true);
+				table.putString("default", defaultCommand.getName());
+			}
+			else {
+				table.putBoolean("hasDefault", false);
+			}
+			
+			if (currentCommand != null) {
+				table.putBoolean("hasCommand", true);
+				table.putString("command", currentCommand.getName());
+			}
+			else {
+				table.putBoolean("hasCommand", false);
+			}
+		}
+	}
+	
+	public ITable getTable() {
+		return table;
+	}
 }
