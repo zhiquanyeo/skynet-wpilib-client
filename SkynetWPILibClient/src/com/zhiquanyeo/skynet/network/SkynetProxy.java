@@ -20,21 +20,31 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		return s_instance.subscribe(topic, subscriber);
 	}
 	
+	public static void unsubscribeDigitalInput(int channel) {
+		String topic = "skynet/robot/sensors/digital/" + channel;
+		s_instance.unsubscribe(topic);
+	}
+	
 	public static boolean subscribeAnalogInput(int channel, ISkynetMessageSubscriber subscriber) {
 		String topic = "skynet/robot/sensors/analog/" + channel;
 		return s_instance.subscribe(topic, subscriber);
 	}
 	
+	public static void unsubscribeAnalogInput(int channel) {
+		String topic = "skynet/robot/sensors/analog/" + channel;
+		s_instance.unsubscribe(topic);
+	}
+	
 	public static void publishDigitalValue(int channel, boolean value) {
-		
+		s_instance.publishDigital(channel, value);
 	}
 	
 	public static void publishAnalogValue(int channel, double value) {
-		
+		s_instance.publishAnalog(channel, value);
 	}
 	
 	public static void publishPwmValue(int channel, double value) {
-		
+		s_instance.publishPwm(channel, value);
 	}
 	
 	private static SkynetProxy s_instance = new SkynetProxy();
@@ -71,6 +81,10 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		
 		d_subscriptions.put(topic, subscriber);
 		return true;
+	}
+	
+	protected void unsubscribe(String topic) {
+		d_subscriptions.remove(topic);
 	}
 	
 	protected void publishDigital(int channel, boolean value) {

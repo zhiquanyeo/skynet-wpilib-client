@@ -131,6 +131,7 @@ public class FRCNetworkCommunicationsLibrary {
 	    public static final int kSmartDashboard_Instance = 1;
 	};
 	
+	
 	/**
 	 * Report the usage of a resource of interest
 	 * @param resource one of the values in tResourceType above
@@ -180,7 +181,7 @@ public class FRCNetworkCommunicationsLibrary {
 	}
 	
 	public static HALControlWord HALGetControlWord() {
-		int word = 0; // TODO Get the word
+		int word = s_instance.makeControlWord();
 		return new HALControlWord((word & 1) != 0, ((word >> 1) & 1) != 0, ((word >> 2) & 1) != 0,
 		        ((word >> 3) & 1) != 0, ((word >> 4) & 1) != 0, ((word >> 5) & 1) != 0);
 	}
@@ -244,6 +245,7 @@ public class FRCNetworkCommunicationsLibrary {
 				for (int i = 0; i < stick.buttons.length; i++) {
 					val += (stick.buttons[i] ? (int)Math.pow(2, i) : 0); 
 				}
+				count.put((byte)stick.buttons.length);
 				return val;
 			}
 		}
@@ -413,13 +415,13 @@ public class FRCNetworkCommunicationsLibrary {
 			if (s_protocol instanceof DS_Protocol2015) {
 				DS_ClientPacket2015 thePacket = (DS_ClientPacket2015)packet;
 				if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pJoystick) {
-					System.out.println("Received packet with joystick data");
+					//System.out.println("Received packet with joystick data");
 				}
 				else if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pTZ) {
-					System.out.println("Received packet with TZ data");
+					//System.out.println("Received packet with TZ data");
 				}
 				else if (thePacket.packetType == DS_Protocol2015.ClientPacketTypes.pGeneral) {
-					System.out.println("Received general packet");
+					//System.out.println("Received general packet");
 				}
 				else {
 					System.err.println("Unknown Packet Type: ");
@@ -431,6 +433,7 @@ public class FRCNetworkCommunicationsLibrary {
 			// We should probably also feed a watchdog
 			
 			if (d_currentRobotMode != packet.controlMode) {
+				System.out.println("Switching control mode to: " + packet.controlMode.toString());
 				// Update!
 				d_currentRobotMode = packet.controlMode;
 				// TODO If we are switching modes to disabled or estop,we might wanna do something smart

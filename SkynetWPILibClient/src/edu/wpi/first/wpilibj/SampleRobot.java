@@ -31,7 +31,7 @@ public class SampleRobot extends RobotBase {
 	}
 	
 	protected void autonomous() {
-		System.out.println("Default disabled() method running, consider providing your own");
+		System.out.println("Default autonomous() method running, consider providing your own");
 	}
 	
 	protected void operatorControl() {

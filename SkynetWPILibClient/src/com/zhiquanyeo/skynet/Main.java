@@ -6,11 +6,13 @@ import com.zhiquanyeo.skynet.ui.MainWindowController;
 
 import edu.wpi.first.wpilibj.RobotBaseRunner;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 
 public class Main extends Application {
@@ -41,6 +43,14 @@ public class Main extends Application {
 	        RobotBaseRunner robotRunner = new RobotBaseRunner(d_skynetConnection);
 	        Thread t = new Thread(robotRunner);
 	        t.start();
+	        
+	        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+				@Override
+				public void handle(WindowEvent event) {
+					// Just quit
+					System.exit(0);
+				}
+	        });
 	        
 	        // === TESTS ===
 	        d_skynetConnection.addSubscriber(d_testListener);

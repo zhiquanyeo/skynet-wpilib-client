@@ -39,7 +39,7 @@ public abstract class GenericHID {
 	
 	public abstract double getZ(Hand hand);
 	
-	public abstract double getTwise();
+	public abstract double getTwist();
 	
 	public abstract double getThrottle();
 	

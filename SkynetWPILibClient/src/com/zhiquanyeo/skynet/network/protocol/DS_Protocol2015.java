@@ -166,10 +166,10 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 
 	@Override
 	public DS_ClientPacket readClientPacket(byte[] buffer) {
-		System.out.println("Buf size: " + buffer.length);
+		//System.out.println("Buf size: " + buffer.length);
 		if (buffer.length < 6) {
 			// bare minimum packet length
-			System.err.println("Under minimum packet length");
+			//System.err.println("Under minimum packet length");
 			return null;
 		}
 		
