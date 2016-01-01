@@ -210,7 +210,7 @@ public class SkynetConnection {
 	
 	public boolean sendPwmOutput(int channel, double value) { //-1 <= pwm <= 1
 		if (!d_isConnected) {
-			LOGGER.warning("Could not send digital output. Not connected");
+			LOGGER.warning("Could not send pwm output. Not connected");
 			return false;
 		}
 		

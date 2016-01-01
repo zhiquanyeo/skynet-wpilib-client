@@ -25,6 +25,18 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		return s_instance.subscribe(topic, subscriber);
 	}
 	
+	public static void publishDigitalValue(int channel, boolean value) {
+		
+	}
+	
+	public static void publishAnalogValue(int channel, double value) {
+		
+	}
+	
+	public static void publishPwmValue(int channel, double value) {
+		
+	}
+	
 	private static SkynetProxy s_instance = new SkynetProxy();
 		
 	
@@ -59,6 +71,33 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		
 		d_subscriptions.put(topic, subscriber);
 		return true;
+	}
+	
+	protected void publishDigital(int channel, boolean value) {
+		if (d_connection == null) {
+			System.err.println("No SkynetConnection set! Can't publish");
+			return;
+		}
+		
+		d_connection.sendDigitalOutput(channel, value);
+	}
+	
+	protected void publishAnalog(int channel, double value) {
+		if (d_connection == null) {
+			System.err.println("No SkynetConnection set! Can't publish");
+			return;
+		}
+		
+		d_connection.sendAnalogOutput(channel, value);
+	}
+	
+	protected void publishPwm(int channel, double value) {
+		if (d_connection == null) {
+			System.err.println("No SkynetConnection set! Can't publish");
+			return;
+		}
+		
+		d_connection.sendPwmOutput(channel, value);
 	}
 	
 	protected boolean publish(String topic, byte[] payload) {
