@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -109,7 +110,10 @@ public class SkynetConnection {
 				
 			});
 			
-			d_mqttClient.connect();
+			MqttConnectOptions options = new MqttConnectOptions();
+			options.setWill("skynet/clients/connectionLost", d_mqttIdentifier.getBytes(), 0, false);
+			
+			d_mqttClient.connect(options);
 			d_isConnected = true;
 			
 			// Subscribe to topics of interest
