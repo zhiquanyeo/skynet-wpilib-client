@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Skynet Deployment" default="run">
+	<property file="${user.home}/wpilib/wpilib.properties"/>
+	<property file="build.properties"/>
+	<property file="${user.home}/wpilib/java/${version}/ant/build.properties"/>
+  	<property file="skynet-build.properties"/>
+  	
+  	<!--  Load tasks -->
+  	<taskdef resource="net/sf/antcontrib/antlib.xml">
+    	<classpath>
+      		<pathelement location="${wpilib.ant.dir}/ant-contrib.jar"/>
+    	</classpath>
+  	</taskdef>
+  	<taskdef resource="net/jtools/classloadertask/antlib.xml" classpath="${classloadertask.jar}"/>
+  	<classloader loader="system" classpath="${jsch.jar}"/>
+
+  	<target name="clean" description="Clean up all build and distribution artifacts.">
+    	<delete dir="${build.dir}"/>
+    	<delete dir="${dist.dir}"/>
+  	</target>
+  	
+  	<target name="compile" description="Compile the source code">
+  		<mkdir dir="${build.dir}"/>
+  		<echo>[skynet-compile] Compiling ${src.dir} with classpath=${skynet.classpath} to ${build.dir}</echo>
+  		<javac srcdir="${src.dir}"
+		       destdir="${build.dir}"
+		       includeAntRuntime="no"
+		       includeJavaRuntime="no"
+		       classpath="${skynet.classpath}"
+		       target="${ant.java.version}"
+		       source="${ant.java.version}"
+		       compiler="javac${ant.java.version}"
+		       debug="true">
+    	</javac>
+  	</target>
+  	
+  	<target name="jar-for-skynet" depends="compile">
+  		<echo>[skynet-jar] Making jar ${skynet.dist.jar}.</echo>
+    	<mkdir dir="${dist.dir}" />
+    	<mkdir dir="${build.jars}" />
+
+  		<echo>[skynet-jar] Copying jars from ${skkynet.classpath} to ${build.jars}.</echo>
+  		<copy todir="${build.jars}" flatten="true">
+    		<path>
+    			<pathelement path="${skynet.classpath}"/>
+    		</path>
+  		</copy>
+
+    	<jar destfile="${skynet.dist.jar}" update="false">
+      		<manifest>
+    			<attribute name="Main-Class" value="com.zhiquanyeo.skynet.Main"/>
+    			<attribute name="Robot-Class" value="${robot.class}"/>
+    			<attribute name="Class-Path" value="."/>
+      		</manifest>
+
+      		<fileset dir="${build.dir}" includes="**/*.class"/>
+
+    		<zipgroupfileset dir="${build.jars}">
+      			<include name="**/*.jar" />
+    		</zipgroupfileset>
+    	</jar>
+  	</target>
+  	
+  	<target name="run" depends="jar-for-skynet">
+  		<echo>[skynet] Running Code</echo>
+  		<java jar="${skynet.dist.jar}" fork="true">
+          	<jvmarg value="-Djava.library.path=${wpilib.lib}" />
+        </java>
+  	</target>
+</project>
