@@ -181,6 +181,7 @@ public class DriverStation implements RobotState.Interface {
     	if (axis < 0 || axis >= FRCNetworkCommunicationsLibrary.kMaxJoystickAxes) {
     		throw new RuntimeException("Joystick axis is out of range");
     	}
+    	
     	if (axis >= d_joystickAxes[stick].length) {
     		reportJoystickUnpluggedError("WARNING: Joystick axis " + axis + " on port " + stick
     				+ " not available, checkif controller is plugged in\n");

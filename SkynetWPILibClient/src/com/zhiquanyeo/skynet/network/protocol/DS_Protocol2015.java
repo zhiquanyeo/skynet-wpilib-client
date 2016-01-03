@@ -308,7 +308,7 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 			   + (stick.numButtons % 8 == 0 ? 0 : 1)
 			   + (stick.numPovHats > 0 ? stick.numPovHats * 2 : 0);
 	}
-
+	
 	@Override
 	public byte[] joystickToBuffer(ArrayList<DS_Joystick> joysticks) {
 		ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -355,6 +355,45 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		buf.get(buffer);
 
 		return buffer;
+	}
+	
+	// This will read in the joystick block, without the size header
+	protected DS_Joystick parseJoystickBuf(byte[] buf, int start, int end) {
+		DS_Joystick stick = new DS_Joystick();
+		int length = end - start + 1;
+		
+		int numAxes = 0;
+		int axesStart = -1;
+		int axesEnd = -1;
+		
+		int numButtons = 0;
+		int numButtonBytes = 0;
+		int buttonStart = -1;
+		int buttonEnd = -1;
+		
+		int numPov = 0;
+		int povStart = -1;
+		int povEnd = -1;
+		
+		if (buf[start] != Headers.pHeaderJoystick.getValue()) {
+			System.err.println("Invalid Joystick packet header");
+			return null;
+		}
+		
+		numAxes = buf[start + 1];
+		axesStart = (start + 1) + 1;
+		axesEnd = axesStart + numAxes - 1;
+		
+		numButtons = buf[axesEnd + 1]; // 1 byte past axesEnd
+		numButtonBytes = numButtons / 8 + (numButtons % 8 == 0 ? 0:1);
+		buttonStart = axesEnd + 1;
+		buttonEnd = buttonStart + numButtonBytes - 1;
+		
+		numPov = buf[buttonEnd + 1];
+		povStart = buttonEnd + 1;
+		povEnd = povStart + (2 * numPov) - 1;
+		
+		return stick;
 	}
 
 	@Override
@@ -411,7 +450,15 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 					buttonVal = (buffer[currPtr++] & 0xFF);
 				}
 				else if (btnByteCount == 2) {
-					buttonVal = ((buffer[currPtr++] << 8) & 0xFF00) + (buffer[currPtr++] & 0xFF);
+					// Error Check
+					if (currPtr > buffer.length - 2) {
+						//TODO Indicate bad packet
+						System.out.println("ERROR: Bad Packet. Overflow");
+						return new ArrayList<DS_Joystick>();
+					}
+					else {
+						buttonVal = ((buffer[currPtr++] << 8) & 0xFF00) + (buffer[currPtr++] & 0xFF);
+					}
 				}
 				
 				for (int i = 0; i < stickData.numButtons; i++) {
@@ -471,5 +518,9 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 		return buffer;
 	}
 	
-	
+	protected void printBuffer(byte[] buf) {
+		for (int i = 0; i < buf.length; i++) {
+			System.out.println("[" + i + "] 0x" + String.format("%02X", buf[i]));
+		}
+	}
 }

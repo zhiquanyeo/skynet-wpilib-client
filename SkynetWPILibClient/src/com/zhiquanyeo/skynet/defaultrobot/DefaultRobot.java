@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Timer;
 
 public class DefaultRobot extends SampleRobot {
 	private Joystick d_joystick;
@@ -31,6 +32,20 @@ public class DefaultRobot extends SampleRobot {
 		d_rearSwitch = new DigitalInput(1);
 		
 		d_outputLED = new DigitalOutput(2);
+		
+	}
+	
+	@Override
+	protected void autonomous() {
+		long lastTime = 0;
+		boolean outputVal = false;
+		while (isEnabled() && isAutonomous()) {
+			if (System.currentTimeMillis() - lastTime > 1000) {
+				outputVal = !outputVal;
+				d_outputLED.set(outputVal);
+				lastTime = System.currentTimeMillis();
+			}
+		}
 	}
 	
 	@Override

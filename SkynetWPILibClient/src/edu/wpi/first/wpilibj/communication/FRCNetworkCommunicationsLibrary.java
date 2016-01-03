@@ -212,27 +212,32 @@ public class FRCNetworkCommunicationsLibrary {
 	public static int kMaxJoystickPOVs = 12;
 	
 	public static short[] HALGetJoystickAxes(byte joystickNum) {
+		short[] ret = new short[kMaxJoystickAxes];
+		for (int i = 0; i < kMaxJoystickAxes; i++) {
+			ret[i] = 0;
+		}
 		DS_Joystick stick = s_instance.getJoystick(joystickNum);
 		if (stick != null) {
-			short[] ret = new short[stick.numAxes];
-			for (int i = 0; i < ret.length; i++) {
+			for (int i = 0; i < stick.numAxes; i++) {
 				ret[i] = (short)(stick.axes[i] * 127);
 			}
-			return ret;
 		}
-		return null;
+		return ret;
 	}
 	
 	public static short[] HALGetJoystickPOVs(byte joystickNum) {
+		short[] ret = new short[kMaxJoystickPOVs];
+		for (int i = 0; i < kMaxJoystickPOVs; i++) {
+			ret[i] = -1;
+		}
+		
 		DS_Joystick stick = s_instance.getJoystick(joystickNum);
 		if (stick != null) {
-			short[] ret = new short[stick.numPovHats];
-			for (int i = 0; i < ret.length; i++) {
+			for (int i = 0; i < stick.numPovHats; i++) {
 				ret[i] = (short)stick.povHats[i];
 			}
-			return ret;
 		}
-		return null;
+		return ret;
 	}
 	
 	public static int HALGetJoystickButtons(byte joystickNum, ByteBuffer count) {
