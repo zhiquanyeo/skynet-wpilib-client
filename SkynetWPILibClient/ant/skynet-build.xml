@@ -39,7 +39,7 @@
     	<mkdir dir="${dist.dir}" />
     	<mkdir dir="${build.jars}" />
 
-  		<echo>[skynet-jar] Copying jars from ${skkynet.classpath} to ${build.jars}.</echo>
+  		<echo>[skynet-jar] Copying jars from ${skynet.classpath} to ${build.jars}.</echo>
   		<copy todir="${build.jars}" flatten="true">
     		<path>
     			<pathelement path="${skynet.classpath}"/>
