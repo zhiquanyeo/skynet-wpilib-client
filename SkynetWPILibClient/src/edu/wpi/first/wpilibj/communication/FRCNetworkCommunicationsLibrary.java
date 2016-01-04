@@ -148,10 +148,6 @@ public class FRCNetworkCommunicationsLibrary {
 		return 0;
 	}
 	
-	public static void setNewDataSem(long mutexId) {
-		
-	}
-	
 	// These all inform the DS of program state
 	public static void FRCNetworkCommunicationObserveUserProgramStarting() {
 		// Send the DS a message that we are ready
@@ -457,7 +453,7 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.packetNum = packet.packetNum;
 			responsePkt.controlMode = (byte)packet.controlMode.ordinal(); //Echo the control byte
 			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
-			responsePkt.voltage = 12.2; // Fake voltage for now
+			responsePkt.voltage = 13.37; // Fake voltage for now
 			
 			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
 			DatagramPacket outPkt = new DatagramPacket(sendBuf, sendBuf.length, address, s_protocol.getClientPort());
