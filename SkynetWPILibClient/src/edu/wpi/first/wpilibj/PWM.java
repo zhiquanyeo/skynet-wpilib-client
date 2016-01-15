@@ -1,6 +1,9 @@
 package edu.wpi.first.wpilibj;
 
 import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary.tResourceType;
+
+import com.zhiquanyeo.skynet.network.SkynetProxy;
+
 import edu.wpi.first.wpilibj.communication.UsageReporting;
 import edu.wpi.first.wpilibj.livewindow.LiveWindowSendable;
 import edu.wpi.first.wpilibj.tables.ITable;
@@ -124,6 +127,7 @@ public class PWM extends SensorBase implements LiveWindowSendable {
 	 */
 	public void setRaw(int value) {
 		d_rawValInt = value;
+		SkynetProxy.publishPwmValue(d_channel, d_rawValInt);
 	}
 
 	/**

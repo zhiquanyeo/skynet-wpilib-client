@@ -212,18 +212,18 @@ public class SkynetConnection {
 		return true;
 	}
 	
-	public boolean sendPwmOutput(int channel, double value) { //-1 <= pwm <= 1
+	public boolean sendPwmOutput(int channel, double value) { //0 - 255
 		if (!d_isConnected) {
 			LOGGER.warning("Could not send pwm output. Not connected");
 			return false;
 		}
 		
 		// Clamp the value
-		if (value < -1.0) {
-			value = -1.0;
+		if (value < 0) {
+			value = 0;
 		}
-		if (value > 1.0) {
-			value = 1.0;
+		if (value > 255) {
+			value = 255;
 		}
 		
 		String strVal = Double.toString(value);

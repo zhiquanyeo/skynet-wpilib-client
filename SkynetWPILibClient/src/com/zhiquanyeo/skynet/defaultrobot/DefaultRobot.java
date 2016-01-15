@@ -39,10 +39,14 @@ public class DefaultRobot extends SampleRobot {
 	protected void autonomous() {
 		long lastTime = 0;
 		boolean outputVal = false;
+		double speed = 0.5;
+		
 		while (isEnabled() && isAutonomous()) {
 			if (System.currentTimeMillis() - lastTime > 1000) {
 				outputVal = !outputVal;
+				speed = -speed;
 				d_outputLED.set(outputVal);
+				d_drivetrain.tankDrive(speed, speed);
 				lastTime = System.currentTimeMillis();
 			}
 		}
