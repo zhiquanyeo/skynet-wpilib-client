@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
+import com.zhiquanyeo.skynet.network.SkynetProxy;
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015;
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015.DS_ClientPacket2015;
 import com.zhiquanyeo.skynet.network.protocol.DS_Protocol2015.ProgramStatus;
@@ -438,6 +439,11 @@ public class FRCNetworkCommunicationsLibrary {
 				// Update!
 				d_currentRobotMode = packet.controlMode;
 				// TODO If we are switching modes to disabled or estop,we might wanna do something smart
+				if (packet.controlMode == DS_ControlMode.kControlDisabled ||
+					packet.controlMode == DS_ControlMode.kControlEmergencyStop) {
+					// We need to force the endpoint to stop
+					SkynetProxy.publishDisable();
+				}
 			}
 			
 			// Save the packet

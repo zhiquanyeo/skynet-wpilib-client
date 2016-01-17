@@ -47,6 +47,10 @@ public class SkynetProxy implements ISkynetConnectionListener {
 		s_instance.publishPwm(channel, value);
 	}
 	
+	public static void publishDisable() {
+		s_instance.publish("skynet/control/disable", "1".getBytes());
+	}
+	
 	private static SkynetProxy s_instance = new SkynetProxy();
 		
 	
