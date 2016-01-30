@@ -248,6 +248,7 @@ public class FRCNetworkCommunicationsLibrary {
 					val += (stick.buttons[i] ? (int)Math.pow(2, i) : 0); 
 				}
 				count.put((byte)stick.buttons.length);
+				count.rewind();
 				return val;
 			}
 		}

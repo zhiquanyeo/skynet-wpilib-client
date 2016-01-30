@@ -481,7 +481,6 @@ public class DS_Protocol2015 extends DS_ProtocolBase {
 						stickData.povHats[i] = (buffer[currPtr++] << 8) + buffer[currPtr++];
 					}
 				}
-				
 				joysticks.add(stickData);
 			}
 		}

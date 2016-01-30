@@ -22,7 +22,7 @@ public class DefaultRobot extends SampleRobot {
 	protected void robotInit() {
 		System.out.println("Default SkynetRobot starting up");
 		
-		d_joystick = new Joystick(1);
+		d_joystick = new Joystick(0);
 		d_drivetrain = new RobotDrive(0, 1);
 		
 		d_frontRangefinder = new AnalogInput(0);
@@ -55,7 +55,7 @@ public class DefaultRobot extends SampleRobot {
 	@Override
 	protected void operatorControl() {
 		while (isEnabled() && isOperatorControl()) {
-			d_drivetrain.arcadeDrive(d_joystick);
+			d_drivetrain.arcadeDrive(-d_joystick.getRawAxis(1), -d_joystick.getRawAxis(0), true);
 			
 			d_outputLED.set(d_joystick.getRawButton(1));
 		}
