@@ -13,6 +13,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import com.zhiquanyeo.skynet.system.SharedSystem;
+
 
 public class SkynetConnection {
 	private final static Logger LOGGER = Logger.getLogger(SkynetConnection.class.getName());
@@ -96,6 +98,11 @@ public class SkynetConnection {
 							
 							case "status": {
 								broadcastRobotStatusMessage(topic, message.getPayload());
+								
+								// Special cases for status
+								if (topic.equals("skynet/robot/status/battery")) {
+									SharedSystem.putValue("PowerVinVoltage", Float.parseFloat(new String(message.getPayload())));
+								}
 							} break;
 							
 							case "message": {

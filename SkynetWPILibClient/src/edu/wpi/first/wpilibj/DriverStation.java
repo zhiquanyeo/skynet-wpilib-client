@@ -1,12 +1,14 @@
 package edu.wpi.first.wpilibj;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.concurrent.Semaphore;
 
 import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
 import edu.wpi.first.wpilibj.communication.HALAllianceStationID;
 import edu.wpi.first.wpilibj.communication.HALControlWord;
-import javafx.scene.shape.FillRule;
+import edu.wpi.first.wpilibj.hal.HALUtil;
+import edu.wpi.first.wpilibj.hal.PowerJNI;
 
 public class DriverStation implements RobotState.Interface {
 	/**
@@ -162,8 +164,11 @@ public class DriverStation implements RobotState.Interface {
     }
     
     public double getBatteryVoltage() {
-    	// TODO - Obtain from Skynet Endpoint
-    	return 12.2;
+    	IntBuffer status = ByteBuffer.allocateDirect(4).asIntBuffer();
+        float voltage = PowerJNI.getVinVoltage(status);
+        HALUtil.checkStatus(status);
+
+        return voltage;
     }
     
     private void reportJoystickUnpluggedError(String message) {

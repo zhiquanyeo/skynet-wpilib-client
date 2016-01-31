@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
@@ -20,6 +21,8 @@ import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_ClientPacket;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_ControlMode;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_Joystick;
 import com.zhiquanyeo.skynet.network.protocol.DS_ProtocolBase.DS_RobotPacket;
+
+import edu.wpi.first.wpilibj.hal.PowerJNI;
 
 /**
  * Replacement for using FRCNetworkCommunicationLibrary on a local skynet instance
@@ -460,7 +463,7 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.packetNum = packet.packetNum;
 			responsePkt.controlMode = (byte)packet.controlMode.ordinal(); //Echo the control byte
 			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
-			responsePkt.voltage = 13.37; // Fake voltage for now
+			responsePkt.voltage = PowerJNI.getVinVoltage(IntBuffer.allocate(4)); // Fake voltage for now
 			
 			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
 			DatagramPacket outPkt = new DatagramPacket(sendBuf, sendBuf.length, address, s_protocol.getClientPort());
