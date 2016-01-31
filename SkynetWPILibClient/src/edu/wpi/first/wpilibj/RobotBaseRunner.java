@@ -11,6 +11,7 @@ import com.zhiquanyeo.skynet.network.SkynetConnection;
 import com.zhiquanyeo.skynet.network.SkynetProxy;
 
 import edu.wpi.first.wpilibj.communication.FRCNetworkCommunicationsLibrary;
+import edu.wpi.first.wpilibj.internal.HardwareHLUsageReporting;
 import edu.wpi.first.wpilibj.internal.SkynetTimer;
 
 public class RobotBaseRunner implements Runnable {
@@ -26,7 +27,7 @@ public class RobotBaseRunner implements Runnable {
 		FRCNetworkCommunicationsLibrary.FRCNetworkCommunicationReserve();
 		
 		Timer.SetImplementation(new SkynetTimer());
-		//HLUsageReporting.SetImplementation(new HardwareHLUsageReporting());
+		HLUsageReporting.SetImplementation(new HardwareHLUsageReporting());
 		RobotState.SetImplementation(DriverStation.getInstance());
 	}
 	
