@@ -462,7 +462,7 @@ public class FRCNetworkCommunicationsLibrary {
 			DS_RobotPacket responsePkt = new DS_RobotPacket();
 			responsePkt.packetNum = packet.packetNum;
 			responsePkt.controlMode = (byte)packet.controlMode.ordinal(); //Echo the control byte
-			responsePkt.programStatus = (byte)d_programStatus.getValue(); // Current program state
+			responsePkt.programStatus = (byte)(d_programStatus.getValue() | ProgramStatus.pProgramCodePresent.getValue()); // Current program state
 			responsePkt.voltage = PowerJNI.getVinVoltage(IntBuffer.allocate(4)); // Fake voltage for now
 			
 			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
