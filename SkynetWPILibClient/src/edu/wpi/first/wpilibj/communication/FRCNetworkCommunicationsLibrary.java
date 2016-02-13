@@ -463,7 +463,7 @@ public class FRCNetworkCommunicationsLibrary {
 			responsePkt.packetNum = packet.packetNum;
 			responsePkt.controlMode = (byte)packet.controlMode.ordinal(); //Echo the control byte
 			responsePkt.programStatus = (byte)(d_programStatus.getValue() | ProgramStatus.pProgramCodePresent.getValue()); // Current program state
-			responsePkt.voltage = PowerJNI.getVinVoltage(IntBuffer.allocate(4)); // Fake voltage for now
+			responsePkt.voltage = PowerJNI.getVinVoltage(IntBuffer.allocate(4));
 			
 			byte[] sendBuf = s_protocol.createRobotPacketBuffer(responsePkt);
 			DatagramPacket outPkt = new DatagramPacket(sendBuf, sendBuf.length, address, s_protocol.getClientPort());
