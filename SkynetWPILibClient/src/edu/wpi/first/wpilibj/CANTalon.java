@@ -25,7 +25,7 @@ public class CANTalon extends SimCANNode implements MotorSafety, PIDOutput, Spee
 	}
 	
 	public enum FeedbackDevice {
-		QuadEncoder(0), AnalogPot(2), AnalogEncoder(3), EncRising(4), EncFalling(5);
+		QuadEncoder(0), AnalogPot(2), AnalogEncoder(3), EncRising(4), EncFalling(5), CtreMagEncoder_Relative(6), CtreMagEncoder_Absolute(7), PulseWidth(8);;
 		
 		public int value;
 		
@@ -227,6 +227,10 @@ public class CANTalon extends SimCANNode implements MotorSafety, PIDOutput, Spee
 		return d_controlMode;
 	}
 	
+	public void configNominalOutputVoltage(double forwardVoltage, double reverseVoltage) {}
+	
+	public void configPeakOutputVoltage(double forwardVoltage, double reverseVoltage) {}
+	
 	private void applyControlMode(TalonControlMode mode) {
 		d_controlMode = mode;
 		if (mode == TalonControlMode.Disabled) {
@@ -235,7 +239,7 @@ public class CANTalon extends SimCANNode implements MotorSafety, PIDOutput, Spee
 		this.sendBusMessage(d_id, "disabled", "true");
 	}
 	
-	private void changeControlMode(TalonControlMode mode) {
+	public void changeControlMode(TalonControlMode mode) {
 		if (d_controlMode == mode) {
 			
 		}
@@ -326,7 +330,7 @@ public class CANTalon extends SimCANNode implements MotorSafety, PIDOutput, Spee
 		disableControl();
 	}
 	
-	public int getDeviceId() {
+	public int getDeviceID() {
 		return d_id;
 	}
 	

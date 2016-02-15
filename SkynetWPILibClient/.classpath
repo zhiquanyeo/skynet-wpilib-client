@@ -9,6 +9,10 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/json-simple-1.1.1.jar"/>
-	<classpathentry kind="lib" path="libs/NetworkTables.jar"/>
+	<classpathentry kind="lib" path="libs/NetworkTables.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/SkynetWPILibClient/libs/NetworkTables-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
